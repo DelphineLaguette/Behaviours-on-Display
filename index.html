@@ -861,7 +861,7 @@ async function getCardImage(type, side) {
   try {
 
     const storage = firebase.storage();
-    const path = `cards/${type}/${side}.png`;
+    const path = `cards/${type}/${type} ${side}.png`;
 
     console.log("Loading card image:", path);
 
