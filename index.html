@@ -857,16 +857,28 @@
 // Load card images from Firebase Storage
 // -------------------------------
 async function getCardImage(type, side) {
+
+  try {
+
     const storage = firebase.storage();
     const path = `cards/${type}/${side}.png`;
 
-    try {
-        const url = await storage.ref(path).getDownloadURL();
-        return url;
-    } catch (error) {
-        console.error("Error loading card image:", path, error);
-        return "";
-    }
+    console.log("Loading card image:", path);
+
+    const url = await storage.ref(path).getDownloadURL();
+
+    console.log("Loaded image:", url);
+
+    return url;
+
+  } catch (error) {
+
+    console.error("Error loading card image:", type, side, error);
+
+    return null;
+
+  }
+
 }
 
 </script>
