@@ -956,10 +956,16 @@ function startListeners() {
   });
   db.collection('cardTypes').onSnapshot(snap => {
     CACHE.cardTypes = snap.docs.map(d => d.data());
+    console.log('[DEBUG] cardTypes loaded:', CACHE.cardTypes.map(c => ({ id: c.id, name: c.name, cls: c.cls })));
     refreshCurrentView();
   });
   db.collection('cards').onSnapshot(snap => {
     CACHE.cards = snap.docs.map(d => d.data());
+    console.log('[DEBUG] cards loaded:', CACHE.cards.map(c => ({ id: c.id, typeId: c.typeId, toId: c.toId, subType: c.subType })));
+    // Show mismatches
+    const typeIds = new Set(CACHE.cardTypes.map(ct => ct.id));
+    const badCards = CACHE.cards.filter(c => !typeIds.has(c.typeId));
+    if (badCards.length) console.warn('[DEBUG] Cards with unrecognised typeId (wont show up):', badCards);
     refreshCurrentView();
   });
 }
@@ -1368,7 +1374,12 @@ async function renderVault(cls) {
           || cardTypes.find(c => c.name.toLowerCase().replace(/\s+/g,'-') === cls)
           || cardTypes.find(c => c.name.toLowerCase().includes(cls.replace('-',' ')));
   const typeId = ct ? ct.id : null;
-  const vaultCards = typeId ? cards.filter(c => c.typeId === typeId) : [];
+  // Match cards by typeId OR by cls field directly (for manually uploaded cards)
+  const vaultCards = cards.filter(c =>
+    (typeId && c.typeId === typeId) ||
+    (c.typeId === cls) ||
+    (c.cls === cls)
+  );
 
   const containerEl = document.getElementById('vault-' + cls + '-content');
 
@@ -1647,10 +1658,9 @@ function renderGiveForm() {
   sel.innerHTML = others.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
 
   const cardTypes = STORE.get('cardTypes') || [];
-  const clsList = ['pioneer','purposeful','excellence','reliable','sustainable','gold-card'];
   const grid = document.getElementById('card-type-grid');
-  grid.innerHTML = cardTypes.map((ct, i) => {
-    const cls = clsList[i % clsList.length];
+  grid.innerHTML = cardTypes.map((ct) => {
+    const cls = ct.cls || ct.name.toLowerCase().replace(/\s+/g, '-');
     const inner = `<span class="ct-icon">${ct.icon}</span><span class="ct-label">${ct.name}</span>`;
     return `<button class="card-type-btn ${cls}" onclick="showVault('${cls}')" data-id="${ct.id}">${inner}</button>`;
   }).join('');
