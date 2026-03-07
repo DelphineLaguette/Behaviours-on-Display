@@ -1364,9 +1364,9 @@ async function renderVault(cls) {
   const cards = STORE.get('cards') || [];
   const cardTypes = STORE.get('cardTypes') || [];
   const users = STORE.get('users') || [];
-  const clsList = ['pioneer','purposeful','excellence','reliable','sustainable','gold-card'];
-  const ctIndex = clsList.indexOf(cls);
-  const ct = cardTypes[ctIndex] || cardTypes.find(c => c.name.toLowerCase().includes(cls.replace('-',' ')));
+  const ct = cardTypes.find(c => c.cls === cls)
+          || cardTypes.find(c => c.name.toLowerCase().replace(/\s+/g,'-') === cls)
+          || cardTypes.find(c => c.name.toLowerCase().includes(cls.replace('-',' ')));
   const typeId = ct ? ct.id : null;
   const vaultCards = typeId ? cards.filter(c => c.typeId === typeId) : [];
 
