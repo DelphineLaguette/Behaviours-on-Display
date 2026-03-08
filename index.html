@@ -855,29 +855,30 @@
 // -------------------------------
 // Load card images from Firebase Storage
 // -------------------------------
-async function getCardImage(type, side) {
+async function getCardImage(type, side, options = {}) {
+  const storage = firebase.storage();
+  let path;
 
-  try {
+  // GOLD CARDS
+  if (type.startsWith("gold-")) {
+    const value = type.replace("gold-", "");   // pioneer, excellence...
+    const team = options.team;                // business-growth, finance...
+    const category = options.category;        // leadership, innovation...
 
-    const storage = firebase.storage();
-    const path = `cards/${type}/${type} ${side}.png`;
-
-    console.log("Loading card image:", path);
-
-    const url = await storage.ref(path).getDownloadURL();
-
-    console.log("Loaded image:", url);
-
-    return url;
-
-  } catch (error) {
-
-    console.error("Error loading card image:", type, side, error);
-
-    return null;
-
+    path = `cards/gold/${team}/${value}/${category}/${side}.png`;
+  }
+  // NORMAL CARDS
+  else {
+    path = `cards/${type}/${side}.png`;
   }
 
+  try {
+    const url = await storage.ref(path).getDownloadURL();
+    return url + "?v=" + Date.now(); // prevent caching
+  } catch (err) {
+    console.error("Image load failed:", path, err);
+    return null;
+  }
 }
 
 </script>
@@ -1421,8 +1422,15 @@ async function renderVaultSection(section, sectionCards, users, color) {
   const slots = [0,1,2]; // always show 3 slots
 
   // Load Firebase Storage images for this section
-  const frontUrl = await getCardImage(section.key, "front");
-  const backUrl  = await getCardImage(section.key, "back");
+const frontUrl = await getCardImage(section.key, "front", {
+  team: userTeam,
+  category: cardCategory
+});
+
+const backUrl = await getCardImage(section.key, "back", {
+  team: userTeam,
+  category: cardCategory
+});
 
   const cardsHTML = await Promise.all(slots.map(async (i) => {
     const c = sectionCards[i];
