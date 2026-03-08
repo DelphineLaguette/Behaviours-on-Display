@@ -865,10 +865,10 @@ async function getCardImage(type, side, options = {}) {
     const team = (options.team || "default").toLowerCase().trim().replace(/\s+/g, '-');
     const category = (options.category || "general").toLowerCase().trim().replace(/\s+/g, '-');
     // No .png here to match your Storage
-    path = `cards/gold/${team}/${value}/${category}/${side}`;
+    path = `cards/gold/${team}/${value}/${category}/${side}.png`;
   } else {
     const cardType = (type || "default").toLowerCase();
-    path = `cards/${cardType}/${side}`;
+    path = `cards/${cardType}/${side}.png`;
   }
 
   try {
