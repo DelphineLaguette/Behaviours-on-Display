@@ -1427,19 +1427,20 @@ if (VAULT_SECTIONS[cls]) {
 }
 
 async function renderVaultSection(section, sectionCards, users, color) {
-  const slots = [0, 1, 2]; // always show 3 slots
+  const slots = [0, 1, 2];
   let frontUrl, backUrl;
 
-  // 1. Get data from the FIRST card in this section to determine the path
-  // We check if sectionCards exists and has at least one card
-  const firstCard = sectionCards && sectionCards.length > 0 ? sectionCards[0] : null;
+  // 1. GET THE DATA FROM THE FIRST CARD IN THIS SECTION
+  const firstCard = (sectionCards && sectionCards.length > 0) ? sectionCards[0] : null;
+  
+  // This line handles both raw objects and Firestore documents
   const cardData = firstCard ? (firstCard.data ? firstCard.data() : firstCard) : null;
 
   if (section.key.startsWith("gold-") && cardData) {
-    // 2. USE the global variables (no 'const' here)
+    // 2. PASS THE REAL DATA TO THE FUNCTION
     frontUrl = await getCardImage(cardData.type, 'front', {
-      team: cardData.team,
-      category: cardData.category
+      team: cardData.team,       // Passes "Business Growth"
+      category: cardData.category // Passes "Benchmark and Explore Market"
     });
 
     backUrl = await getCardImage(cardData.type, 'back', {
@@ -1447,80 +1448,13 @@ async function renderVaultSection(section, sectionCards, users, color) {
       category: cardData.category
     });
   } else {
-    // Standard cards use the section key (e.g., "problem-solving")
+    // Normal cards logic
     frontUrl = await getCardImage(section.key, "front");
     backUrl  = await getCardImage(section.key, "back");
   }
 
-  const cardsHTML = await Promise.all(slots.map(async (i) => {
-    const c = sectionCards[i];
-    const uid = `flip_${section.key}_${i}`;
-
-    // FRONT OF CARD
-    const frontImg = frontUrl 
-      ? `<img src="${frontUrl}" alt="${section.title}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
-      : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#0a2d6e,#4a90d9);display:flex;align-items:center;justify-content:center;border-radius:12px;">
-            <span style="font-size:40px">🎴</span>
-         </div>`;
-
-    // BACK CONTENT OVERLAY
-    let backContent;
-    if (c) {
-      const from = users.find(u => u.id === c.fromId) || { name: "Unknown", color: "#888" };
-      const to = users.find(u => u.id === c.toId) || { name: "Unknown", color: "#888" };
-      const initials = from.name.split(" ").map(n => n[0]).join("").slice(0,2).toUpperCase();
-
-      backContent = `
-        <div class="vault-flip-back-content">
-          <div class="vf-avatar" style="background:${from.color || color}">${initials}</div>
-          <div class="vf-from">${from.name}</div>
-          <div class="vf-arrow">↓</div>
-          <div class="vf-to">${to.name}</div>
-          ${c.note ? `<div class="vf-note">"${c.note}"</div>` : ""}
-          <div class="vf-date">${fmtDate(c.ts)}</div>
-        </div>`;
-    } else {
-      backContent = `
-        <div class="vault-flip-back-content" style="opacity:0.4">
-          <div style="font-size:32px">🎴</div>
-          <div style="font-size:12px;margin-top:8px;color:var(--muted)">Not yet given</div>
-        </div>`;
-    }
-
-    // BACK OF CARD
-    let backHTML = `
-      <div style="position:relative;width:100%;height:100%;">
-        <img src="${backUrl}" alt="${section.title} back" style="width:100%;height:100%;object-fit:cover;display:block;">
-        ${c ? `
-          <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,0.92);padding:8px 10px;text-align:center;font-size:11px;">
-            <span style="font-weight:700">${users.find(u => u.id === c.fromId)?.name || "Unknown"}</span>
-            →
-            <span style="color:var(--muted)">${users.find(u => u.id === c.toId)?.name || "Unknown"}</span>
-            ${c.note ? `<div style="font-style:italic;color:#555;margin-top:2px;font-size:10px;">"${c.note}"</div>` : ""}
-          </div>
-        ` : ""}
-      </div>`;
-
-    return `
-      <div>
-        <div class="vault-flip-card" id="${uid}" onclick="this.classList.toggle('flipped')">
-          <div class="vault-flip-inner">
-            <div class="vault-flip-front">${frontImg}</div>
-            <div class="vault-flip-back">${backHTML}</div>
-          </div>
-        </div>
-        <div class="vault-hint">Click to flip</div>
-      </div>
-    `;
-  }));
-
-  return `
-    <div class="vault-section">
-      <div class="vault-section-subtitle">${section.subtitle}</div>
-      <div class="vault-card-row${section.small ? ' small-cards' : ''}">${cardsHTML.join("")}</div>
-    </div>`;
-}
-function renderGenericVault(vaultCards, users, color, cls) {
+  // ... the rest of your mapping code follows ...
+}function renderGenericVault(vaultCards, users, color, cls) {
   if (vaultCards.length === 0) {
     return `<div class="empty"><div class="empty-icon">🗂️</div><p>No cards in this vault yet.</p></div>`;
   }
