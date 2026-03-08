@@ -1014,6 +1014,8 @@ async function initData() {
 // AUTH
 // ══════════════════════════════════════
 
+currentUser = firebase.auth().currentUser;
+
 function showAppForUser(user) {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
