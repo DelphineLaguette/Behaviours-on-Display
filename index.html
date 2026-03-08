@@ -1014,8 +1014,6 @@ async function initData() {
 // AUTH
 // ══════════════════════════════════════
 
-currentUser = firebase.auth().currentUser;
-
 function showAppForUser(user) {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
@@ -1974,17 +1972,34 @@ function deleteCard(id) {
 // INIT — boot Firebase on page load
 // ══════════════════════════════════════
 window.addEventListener('load', () => {
-  initFirebase().catch(e => {
-    console.error('Firebase init error:', e);
-    // Only show the error after a short delay to avoid false alarms on slow connections
-    setTimeout(() => {
-      const errEl = document.getElementById('auth-error');
-      // Only show if user is still on the login screen (not already logged in)
-      if (document.getElementById('auth-screen').style.display !== 'none') {
-        errEl.textContent = 'Could not connect. Please check your internet connection and refresh the page.';
-        errEl.style.display = 'block';
+  initFirebase().then(() => {
+    // ════════════════════════════════════════════════
+    // ONLY NOW is it safe to use firebase.auth()
+    // ════════════════════════════════════════════════
+    
+    // Set up your global auth and db variables if you haven't
+    auth = firebase.auth();
+    db = firebase.firestore();
+    storage = firebase.storage();
+
+    // Now check if a user is already logged in
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          currentUser = doc.data();
+          showAppForUser(currentUser);
+          startListeners();
+        }
+      } else {
+        // Not logged in, show the login screen
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('app').style.display = 'none';
       }
-    }, 5000);
+    });
+
+  }).catch(e => {
+    console.error('Firebase init error:', e);
   });
 });
 </script>
