@@ -1401,7 +1401,7 @@ let sectionsHTML = '';
   if (VAULT_SECTIONS[cls]) {
     const renderedSections = await Promise.all(
       VAULT_SECTIONS[cls].map(async section => {
-        // This filter is now case-insensitive to prevent "Gold" vs "gold" errors
+        // This version ignores spaces and capitalization errors
         const sectionCards = vaultCards.filter(c => 
           (c.subType || "").toLowerCase().trim() === (section.key || "").toLowerCase().trim()
         );
@@ -1415,10 +1415,10 @@ let sectionsHTML = '';
     sectionsHTML = renderGenericVault(vaultCards, users, meta.color, cls);
   }
 
-  // If NO cards matched the sub-sections, show this message instead of a blank screen
+  // If the vault is still empty, show a message instead of a white screen
   if (!sectionsHTML || sectionsHTML.trim() === "") {
-    sectionsHTML = `<div style="padding:20px; text-align:center; color:#666;">
-                      No cards found in the "${cls}" category for this user yet.
+    sectionsHTML = `<div style="padding:40px; text-align:center; opacity:0.6;">
+                      No ${meta.label} cards found for this account.
                     </div>`;
   }
 
