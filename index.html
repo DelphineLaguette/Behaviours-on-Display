@@ -860,36 +860,26 @@ async function getCardImage(type, side, options = {}) {
   const storage = firebase.storage();
   let path;
 
-  // GOLD CARDS
   if (type && type.startsWith("gold-")) {
-    const value = type.replace("gold-", "").toLowerCase(); // e.g., pioneer
-    
-    // Convert "Business Growth" -> "business-growth"
-    // Convert "Benchmark and Explore Market" -> "benchmark-and-explore-market"
+    const value = type.replace("gold-", "").toLowerCase();
     const team = (options.team || "default").toLowerCase().trim().replace(/\s+/g, '-');
     const category = (options.category || "general").toLowerCase().trim().replace(/\s+/g, '-');
-
-// No .png here!
+    // No .png here to match your Storage
     path = `cards/gold/${team}/${value}/${category}/${side}`;
   } else {
     const cardType = (type || "default").toLowerCase();
     path = `cards/${cardType}/${side}`;
   }
 
-  // NORMAL CARDS
-  else {
-    const cardType = (type || "default").toLowerCase();
-    path = `cards/${cardType}/${side}.png`;
-  }
-
-try {
+  try {
     const url = await storage.ref(path).getDownloadURL();
-    return url + "?v=" + Date.now(); 
+    return url + "?v=" + Date.now();
   } catch (err) {
     console.error("Image load failed:", path, err);
     return null;
   }
 }
+
 </script>
 
 <script>
@@ -1428,33 +1418,51 @@ if (VAULT_SECTIONS[cls]) {
 
 async function renderVaultSection(section, sectionCards, users, color) {
   const slots = [0, 1, 2];
-  let frontUrl, backUrl;
+  let frontUrl = '', backUrl = '';
 
-  // 1. GET THE DATA FROM THE FIRST CARD IN THIS SECTION
-  const firstCard = (sectionCards && sectionCards.length > 0) ? sectionCards[0] : null;
-  
-  // This line handles both raw objects and Firestore documents
-  const cardData = firstCard ? (firstCard.data ? firstCard.data() : firstCard) : null;
+  if (!sectionCards || sectionCards.length === 0) return '';
+
+  // Define cardData from the first available card
+  const firstCard = sectionCards[0];
+  const cardData = firstCard.data ? firstCard.data() : firstCard;
 
   if (section.key.startsWith("gold-") && cardData) {
-    // 2. PASS THE REAL DATA TO THE FUNCTION
     frontUrl = await getCardImage(cardData.type, 'front', {
-      team: cardData.team,       // Passes "Business Growth"
-      category: cardData.category // Passes "Benchmark and Explore Market"
+      team: cardData.team,
+      category: cardData.category
     });
-
     backUrl = await getCardImage(cardData.type, 'back', {
       team: cardData.team,
       category: cardData.category
     });
   } else {
-    // Normal cards logic
     frontUrl = await getCardImage(section.key, "front");
     backUrl  = await getCardImage(section.key, "back");
   }
 
-  // ... the rest of your mapping code follows ...
-}function renderGenericVault(vaultCards, users, color, cls) {
+  // Generate the HTML for the 3 slots
+  const cardsHTML = await Promise.all(slots.map(async (i) => {
+    const c = sectionCards[i];
+    const uid = `flip_${section.key}_${i}`;
+    if (!c) return `<div class="card-slot empty"></div>`;
+    
+    return `
+      <div class="card-slot">
+        <div class="card-inner" id="${uid}" onclick="flipCard('${uid}')">
+          <div class="card-front" style="background-image: url('${frontUrl}')"></div>
+          <div class="card-back" style="background-image: url('${backUrl}')"></div>
+        </div>
+      </div>`;
+  }));
+
+  return `
+    <div class="vault-section">
+      <h3 style="color:${color}">${section.title}</h3>
+      <div class="card-grid">${cardsHTML.join('')}</div>
+    </div>`;
+}
+
+function renderGenericVault(vaultCards, users, color, cls) {
   if (vaultCards.length === 0) {
     return `<div class="empty"><div class="empty-icon">🗂️</div><p>No cards in this vault yet.</p></div>`;
   }
