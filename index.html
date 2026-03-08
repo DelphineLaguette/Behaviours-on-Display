@@ -1422,15 +1422,22 @@ async function renderVaultSection(section, sectionCards, users, color) {
   const slots = [0,1,2]; // always show 3 slots
 
   // Load Firebase Storage images for this section
-const frontUrl = await getCardImage(section.key, "front", {
-  team: userTeam,
-  category: cardCategory
-});
+let frontUrl, backUrl;
 
-const backUrl = await getCardImage(section.key, "back", {
-  team: userTeam,
-  category: cardCategory
-});
+if (section.key.startsWith("gold-")) {
+  frontUrl = await getCardImage(section.key, "front", {
+    team: currentUser.teamSlug,
+    category: section.category // if you use categories
+  });
+
+  backUrl = await getCardImage(section.key, "back", {
+    team: currentUser.teamSlug,
+    category: section.category
+  });
+} else {
+  frontUrl = await getCardImage(section.key, "front");
+  backUrl  = await getCardImage(section.key, "back");
+}
 
   const cardsHTML = await Promise.all(slots.map(async (i) => {
     const c = sectionCards[i];
