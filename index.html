@@ -1429,14 +1429,13 @@ async function renderVaultSection(section, sectionCards, users, color) {
 let frontUrl, backUrl;
 
 if (section.key.startsWith("gold-")) {
- const frontUrl = await getCardImage(cardData.type, 'front', {
-    team: cardData.team,        // This sends "Business Growth"
-    category: cardData.category  // This sends "Benchmark and Explore Market"
+  frontUrl = await getCardImage(section.key, 'front', {
+    team: section.team,
+    category: section.category
   });
-
-  const backUrl = await getCardImage(cardData.type, 'back', {
-    team: cardData.team,
-    category: cardData.category
+  backUrl = await getCardImage(section.key, 'back', {
+    team: section.team,
+    category: section.category
   });
 } else {
   frontUrl = await getCardImage(section.key, "front");
