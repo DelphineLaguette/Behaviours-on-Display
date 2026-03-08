@@ -860,21 +860,25 @@ async function getCardImage(type, side, options = {}) {
   let path;
 
   // GOLD CARDS
-  if (type.startsWith("gold-")) {
-    const value = type.replace("gold-", "");   // pioneer, excellence...
-    const team = options.team;                // business-growth, finance...
-    const category = options.category;        // leadership, innovation...
+  if (type && type.startsWith("gold-")) {
+    const value = type.replace("gold-", "").toLowerCase(); // e.g., excellence
+    
+    // Safely format the team and category to match Storage paths (lowercase, no spaces)
+    // We use 'default' and 'general' as fallbacks to prevent "undefined" in the path
+    const team = (options.team || "default").toLowerCase().trim().replace(/\s+/g, '-');
+    const category = (options.category || "general").toLowerCase().trim().replace(/\s+/g, '-');
 
     path = `cards/gold/${team}/${value}/${category}/${side}.png`;
-  }
+  } 
   // NORMAL CARDS
   else {
-    path = `cards/${type}/${side}.png`;
+    const cardType = (type || "default").toLowerCase();
+    path = `cards/${cardType}/${side}.png`;
   }
 
   try {
     const url = await storage.ref(path).getDownloadURL();
-    return url + "?v=" + Date.now(); // prevent caching
+    return url + "?v=" + Date.now(); // Cache busting
   } catch (err) {
     console.error("Image load failed:", path, err);
     return null;
@@ -912,6 +916,8 @@ const firebaseConfig = {
 let db;
 
 let auth;
+
+let currentUser = null; // ✅ add this line
 
 async function initFirebase() {
   // SDKs are embedded inline — no network needed
