@@ -1395,18 +1395,31 @@ async function renderVault(cls) {
   const containerEl = document.getElementById('vault-' + cls + '-content');
 
   // Build sections HTML
-  let sectionsHTML = '';
+// Build sections HTML
+let sectionsHTML = '';
 
   if (VAULT_SECTIONS[cls]) {
     const renderedSections = await Promise.all(
       VAULT_SECTIONS[cls].map(async section => {
-        const sectionCards = vaultCards.filter(c => c.subType === section.key);
+        // This filter is now case-insensitive to prevent "Gold" vs "gold" errors
+        const sectionCards = vaultCards.filter(c => 
+          (c.subType || "").toLowerCase().trim() === (section.key || "").toLowerCase().trim()
+        );
+
+        console.log(`[SECTION DEBUG] ${section.label}: Found ${sectionCards.length} cards`);
         return await renderVaultSection(section, sectionCards, users, meta.color);
       })
     );
     sectionsHTML = renderedSections.join('');
   } else {
     sectionsHTML = renderGenericVault(vaultCards, users, meta.color, cls);
+  }
+
+  // If NO cards matched the sub-sections, show this message instead of a blank screen
+  if (!sectionsHTML || sectionsHTML.trim() === "") {
+    sectionsHTML = `<div style="padding:20px; text-align:center; color:#666;">
+                      No cards found in the "${cls}" category for this user yet.
+                    </div>`;
   }
 
   containerEl.innerHTML = `
