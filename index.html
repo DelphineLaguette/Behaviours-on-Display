@@ -1423,24 +1423,30 @@ if (VAULT_SECTIONS[cls]) {
 }
 
 async function renderVaultSection(section, sectionCards, users, color) {
-  const slots = [0,1,2]; // always show 3 slots
+  const slots = [0, 1, 2]; // always show 3 slots
+  let frontUrl, backUrl;
 
-  // Load Firebase Storage images for this section
-let frontUrl, backUrl;
+  // 1. Get data from the FIRST card in this section to determine the path
+  // We check if sectionCards exists and has at least one card
+  const firstCard = sectionCards && sectionCards.length > 0 ? sectionCards[0] : null;
+  const cardData = firstCard ? (firstCard.data ? firstCard.data() : firstCard) : null;
 
-if (section.key.startsWith("gold-")) {
-  frontUrl = await getCardImage(section.key, 'front', {
-    team: section.team,
-    category: section.category
-  });
-  backUrl = await getCardImage(section.key, 'back', {
-    team: section.team,
-    category: section.category
-  });
-} else {
-  frontUrl = await getCardImage(section.key, "front");
-  backUrl  = await getCardImage(section.key, "back");
-}
+  if (section.key.startsWith("gold-") && cardData) {
+    // 2. USE the global variables (no 'const' here)
+    frontUrl = await getCardImage(cardData.type, 'front', {
+      team: cardData.team,
+      category: cardData.category
+    });
+
+    backUrl = await getCardImage(cardData.type, 'back', {
+      team: cardData.team,
+      category: cardData.category
+    });
+  } else {
+    // Standard cards use the section key (e.g., "problem-solving")
+    frontUrl = await getCardImage(section.key, "front");
+    backUrl  = await getCardImage(section.key, "back");
+  }
 
   const cardsHTML = await Promise.all(slots.map(async (i) => {
     const c = sectionCards[i];
