@@ -869,6 +869,13 @@ async function getCardImage(type, side, options = {}) {
     const team = (options.team || "default").toLowerCase().trim().replace(/\s+/g, '-');
     const category = (options.category || "general").toLowerCase().trim().replace(/\s+/g, '-');
 
+// No .png here!
+    path = `cards/gold/${team}/${value}/${category}/${side}`;
+  } else {
+    const cardType = (type || "default").toLowerCase();
+    path = `cards/${cardType}/${side}`;
+  }
+
   // NORMAL CARDS
   else {
     const cardType = (type || "default").toLowerCase();
