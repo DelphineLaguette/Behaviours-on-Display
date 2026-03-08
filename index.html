@@ -4,6 +4,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+let auth, db, storage, currentUser;
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Behaviours on Display</title>
@@ -913,17 +914,15 @@ const firebaseConfig = {
 
 };
 
-let db;
-
-let auth;
-
-let currentUser = null; // ✅ add this line
+let auth, db, storage, currentUser;
 
 async function initFirebase() {
-  // SDKs are embedded inline — no network needed
   firebase.initializeApp(firebaseConfig);
-  db   = firebase.firestore();
-  auth = firebase.auth();
+  db      = firebase.firestore();
+  auth    = firebase.auth();
+  storage = firebase.storage(); // <--- ADD THIS LINE HERE
+
+  // The rest of your code remains the same...
 
   // Use SESSION persistence — user is signed out when browser/tab is closed
   try {
@@ -1973,31 +1972,27 @@ function deleteCard(id) {
 // ══════════════════════════════════════
 window.addEventListener('load', () => {
   initFirebase().then(() => {
-    // ════════════════════════════════════════════════
-    // ONLY NOW is it safe to use firebase.auth()
-    // ════════════════════════════════════════════════
-    
-    // Set up your global auth and db variables if you haven't
+    // 1. Initialize global variables now that App is ready
     auth = firebase.auth();
     db = firebase.firestore();
     storage = firebase.storage();
 
-    // Now check if a user is already logged in
+    // 2. Check for an existing login session
     auth.onAuthStateChanged(async (user) => {
       if (user) {
+        // User is logged in, fetch their profile from Firestore
         const doc = await db.collection('users').doc(user.uid).get();
         if (doc.exists) {
           currentUser = doc.data();
           showAppForUser(currentUser);
-          startListeners();
+          if (typeof startListeners === "function") startListeners();
         }
       } else {
-        // Not logged in, show the login screen
+        // No user logged in, show the login screen
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('app').style.display = 'none';
       }
     });
-
   }).catch(e => {
     console.error('Firebase init error:', e);
   });
