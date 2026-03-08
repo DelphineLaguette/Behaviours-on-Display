@@ -1396,26 +1396,29 @@ async function renderVault(cls) {
 
   // Build sections HTML
 // Build sections HTML
-let sectionsHTML = '';
+// --- REPLACE THE HTML BUILDING BLOCK ---
+  let sectionsHTML = '';
 
-  if (VAULT_SECTIONS[cls]) {
+  // 1. Try to find cards for specific sections
+  if (VAULT_SECTIONS[cls] && VAULT_SECTIONS[cls].length > 0) {
     const renderedSections = await Promise.all(
       VAULT_SECTIONS[cls].map(async section => {
-        // This version ignores spaces and capitalization errors
         const sectionCards = vaultCards.filter(c => 
           (c.subType || "").toLowerCase().trim() === (section.key || "").toLowerCase().trim()
         );
-
-        console.log(`[SECTION DEBUG] ${section.label}: Found ${sectionCards.length} cards`);
         return await renderVaultSection(section, sectionCards, users, meta.color);
       })
     );
     sectionsHTML = renderedSections.join('');
-  } else {
+  } 
+
+  // 2. CRITICAL FIX: If sections are empty, but vaultCards HAS data, use Generic layout
+  if ((!sectionsHTML || sectionsHTML.trim() === "") && vaultCards.length > 0) {
+    console.log(`[DEBUG] Found ${vaultCards.length} cards but no section match. Using Generic Vault.`);
     sectionsHTML = renderGenericVault(vaultCards, users, meta.color, cls);
   }
 
-  // If the vault is still empty, show a message instead of a white screen
+  // 3. Only show the "No cards" message if there are TRULY 0 cards for the user
   if (!sectionsHTML || sectionsHTML.trim() === "") {
     sectionsHTML = `<div style="padding:40px; text-align:center; opacity:0.6;">
                       No ${meta.label} cards found for this account.
