@@ -1946,27 +1946,48 @@ function deleteCard(id) {
 // ══════════════════════════════════════
 window.addEventListener('load', () => {
   initFirebase().then(() => {
-    // 1. Initialize global variables now that App is ready
-    auth = firebase.auth();
-    db = firebase.firestore();
-    storage = firebase.storage();
 
-    // 2. Check for an existing login session
     auth.onAuthStateChanged(async (user) => {
+
+      // ── USER LOGGED IN ─────────────────────────────
       if (user) {
-        // User is logged in, fetch their profile from Firestore
-        const doc = await db.collection('users').doc(user.uid).get();
-        if (doc.exists) {
-          currentUser = doc.data();
+        try {
+          let snap = await db.collection('users').doc(user.uid).get();
+
+          // ✅ If profile missing → create it automatically
+          if (!snap.exists) {
+            await db.collection('users').doc(user.uid).set({
+              id: user.uid,
+              email: user.email || '',
+              name: (user.email || 'User').split('@')[0],
+              role: 'user',
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            snap = await db.collection('users').doc(user.uid).get();
+          }
+
+          currentUser = snap.data();
+
+          // Show app
           showAppForUser(currentUser);
-          if (typeof startListeners === "function") startListeners();
+
+          // Start real-time listeners
+          if (typeof startListeners === "function") {
+            startListeners();
+          }
+
+        } catch (err) {
+          console.error('Profile load error:', err);
         }
+
+      // ── USER LOGGED OUT ────────────────────────────
       } else {
-        // No user logged in, show the login screen
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('app').style.display = 'none';
       }
+
     });
+
   }).catch(e => {
     console.error('Firebase init error:', e);
   });
