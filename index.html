@@ -1365,42 +1365,49 @@ function showVault(cls) {
 }
 
 async function renderVault(cls) {
+  // --- START OF REPLACEMENT BLOCK ---
   const meta = VAULT_META[cls];
-  const cards = STORE.get('cards') || [];
-  const cardTypes = STORE.get('cardTypes') || [];
-  const users = STORE.get('users') || [];
+  
+  // 1. Pull data from CACHE (where your DEBUG logs show the data is)
+  const cards = (typeof CACHE !== 'undefined' ? CACHE.cards : []) || [];
+  const cardTypes = (typeof CACHE !== 'undefined' ? CACHE.cardTypes : []) || [];
+  const users = (typeof CACHE !== 'undefined' ? CACHE.users : []) || [];
+  const myUID = firebase.auth().currentUser ? firebase.auth().currentUser.uid : null;
+
+  // 2. Identify the specific Card Type (ct)
   const ct = cardTypes.find(c => c.cls === cls)
-          || cardTypes.find(c => c.name.toLowerCase().replace(/\s+/g,'-') === cls)
-          || cardTypes.find(c => c.name.toLowerCase().includes(cls.replace('-',' ')));
+          || cardTypes.find(c => c.name?.toLowerCase().replace(/\s+/g,'-') === cls)
+          || cardTypes.find(c => c.name?.toLowerCase().includes(cls?.replace('-',' ')));
+  
   const typeId = ct ? ct.id : null;
-  // Match cards by typeId OR by cls field directly (for manually uploaded cards)
-  const vaultCards = cards.filter(c =>
-    (typeId && c.typeId === typeId) ||
-    (c.typeId === cls) ||
-    (c.cls === cls)
-  );
+
+  // 3. Filter by Type AND ensure Joshua is the owner (toId matches myUID)
+  const vaultCards = cards.filter(c => {
+    const isRightType = (typeId && c.typeId === typeId) || (c.typeId === cls) || (c.cls === cls);
+    const isMine = (c.toId === myUID); 
+    return isRightType && isMine;
+  });
+
+  // Diagnostic Log to see exactly what's happening in the vault
+  console.log(`[RENDER DEBUG] Section: ${cls} | User: ${myUID} | Found: ${vaultCards.length} cards`);
+  // --- END OF REPLACEMENT BLOCK ---
 
   const containerEl = document.getElementById('vault-' + cls + '-content');
 
-// Build sections HTML
-let sectionsHTML = '';
+  // Build sections HTML
+  let sectionsHTML = '';
 
-if (VAULT_SECTIONS[cls]) {
-
-  // Because renderVaultSection is async, we must use Promise.all
-  const renderedSections = await Promise.all(
-    VAULT_SECTIONS[cls].map(async section => {
-      const sectionCards = vaultCards.filter(c => c.subType === section.key);
-      return await renderVaultSection(section, sectionCards, users, meta.color);
-    })
-  );
-
-  sectionsHTML = renderedSections.join('');
-
-} else {
-  // generic vault (excellence, reliable, sustainable, gold-card)
-  sectionsHTML = renderGenericVault(vaultCards, users, meta.color, cls);
-}
+  if (VAULT_SECTIONS[cls]) {
+    const renderedSections = await Promise.all(
+      VAULT_SECTIONS[cls].map(async section => {
+        const sectionCards = vaultCards.filter(c => c.subType === section.key);
+        return await renderVaultSection(section, sectionCards, users, meta.color);
+      })
+    );
+    sectionsHTML = renderedSections.join('');
+  } else {
+    sectionsHTML = renderGenericVault(vaultCards, users, meta.color, cls);
+  }
 
   containerEl.innerHTML = `
     <div class="page-header">
