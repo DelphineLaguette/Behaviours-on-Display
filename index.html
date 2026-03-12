@@ -929,7 +929,6 @@ async function initFirebase() {
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
 
-  await initData();
   console.log('Firebase + Auth ready.');
 }
 
@@ -1970,6 +1969,9 @@ window.addEventListener('load', () => {
 
           // Show app
           showAppForUser(currentUser);
+
+          // Seed default data if needed (runs with auth — avoids permission errors)
+          await initData();
 
           // Start real-time listeners
           if (typeof startListeners === "function") {
