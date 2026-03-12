@@ -976,8 +976,8 @@ function refreshCurrentView() {
   if (!active) return;
   const id = active.id.replace('view-', '');
   if (id === 'dashboard')   renderDashboard();
-  else if (id === 'give')   renderGiveCard();
-  else if (id === 'my-cards') renderMyCards();
+  else if (id === 'give')   renderGiveForm();
+  else if (id === 'mycards') renderMyCards();
   else if (id === 'teams')  renderTeams();
   else if (id === 'admin')  renderAdmin();
   else if (id.startsWith('vault-')) {
@@ -1655,7 +1655,7 @@ function renderGiveForm() {
   grid.innerHTML = cardTypes.map((ct) => {
     const cls = ct.cls || ct.name.toLowerCase().replace(/\s+/g, '-');
     const inner = `<span class="ct-icon">${ct.icon}</span><span class="ct-label">${ct.name}</span>`;
-    return `<button class="card-type-btn ${cls}" onclick="showVault('${cls}')" data-id="${ct.id}">${inner}</button>`;
+    return `<button class="card-type-btn ${cls}" onclick="selectCardType('${ct.id}', this, '${cls}')" data-id="${ct.id}">${inner}</button>`;
   }).join('');
   selectedCardType = null;
   document.getElementById('give-note').value = '';
