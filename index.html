@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Behaviours on Display</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #e8eef5;
+    --border: #d0dae6;
+    --accent: #0a2d6e;
+    --accent2: #7c3aed;
+    --accent3: #059669;
+    --accent4: #0891b2;
+    --text: #1e293b;
+    --muted: #64748b;
+    --danger: #dc2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+  h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+
+  /* ── AUTH SCREEN ── */
+  #auth-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 30% 20%, #c7d6f0 0%, var(--bg) 60%);
+  }
+  .auth-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    overflow: hidden;
+  }
+  .auth-box::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(10,45,110,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .auth-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+  .auth-logo span { color: var(--accent); }
+  .auth-sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 12px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+  .form-group select option { background: var(--surface2); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: none; border-radius: 10px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 600;
+    transition: all 0.2s; text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--accent); color: #ffffff;
+    padding: 13px 24px; font-size: 14px; width: 100%;
+  }
+  .btn-primary:hover { background: #081f4d; transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    padding: 10px 18px; font-size: 13px;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: var(--danger); color: #fff; padding: 8px 14px; font-size: 13px; }
+  .btn-danger:hover { background: #e86070; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; }
+
+  /* ── APP SHELL ── */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px;
+    height: 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .nav-logo span { color: var(--accent); }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 8px 16px; border-radius: 8px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--muted); transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--surface2); }
+  .nav-tab.active { color: var(--accent); background: rgba(10,45,110,0.08); border-color: rgba(10,45,110,0.2); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-user {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--muted);
+  }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .btn-logout {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--muted); padding: 7px 14px; font-size: 12px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* ── MAIN CONTENT ── */
+  .main { flex: 1; padding: 32px; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── PAGE HEADER ── */
+  .page-header { margin-bottom: 32px; }
+  .page-header h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .page-header p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+
+  /* ── STATS STRIP ── */
+  .stats-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    border-radius: 0 0 14px 14px;
+  }
+  .stat-card.c1::after { background: var(--accent); }
+  .stat-card.c2::after { background: var(--accent2); }
+  .stat-card.c3::after { background: var(--accent3); }
+  .stat-card.c4::after { background: var(--accent4); }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); font-weight: 500; margin-bottom: 8px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; }
+  .stat-card.c1 .stat-value { color: var(--accent); }
+  .stat-card.c2 .stat-value { color: var(--accent2); }
+  .stat-card.c3 .stat-value { color: var(--accent3); }
+  .stat-card.c4 .stat-value { color: var(--accent4); }
+
+  /* ── TEAM TABS ── */
+  .team-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .team-tab {
+    padding: 10px 18px; border-radius: 10px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--muted); background: var(--surface); border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .team-tab:hover { color: var(--text); border-color: var(--accent); }
+  .team-tab.active { color: #ffffff; background: var(--accent); border-color: var(--accent); }
+
+  /* ── LEADERBOARD ── */
+  .leaderboard { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .lb-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .lb-header h3 { font-size: 16px; font-weight: 700; }
+  .lb-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row:hover { background: var(--surface2); }
+  .lb-row.me { background: rgba(10,45,110,0.05); }
+  .rank {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px;
+    width: 32px; text-align: center; color: var(--muted);
+  }
+  .rank.gold { color: var(--accent); }
+  .rank.silver { color: #c0c8d8; }
+  .rank.bronze { color: var(--accent2); }
+  .lb-name { flex: 1; font-weight: 500; }
+  .lb-name small { display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+  .lb-cards { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .pill {
+    font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+    font-family: 'Syne', sans-serif;
+  }
+  .pill.pioneer { background: rgba(10,45,110,0.1); color: #0a2d6e; }
+  .pill.purposeful { background: rgba(236,72,153,0.12); color: #be185d; }
+  .pill.excellence { background: rgba(124,58,237,0.12); color: #7c3aed; }
+  .pill.reliable { background: rgba(5,150,105,0.12); color: #059669; }
+  .pill.sustainable { background: rgba(234,88,12,0.12); color: #ea580c; }
+  .pill.gold-card { background: rgba(217,119,6,0.15); color: #b45309; }
+  .pill.count { background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-size: 12px; min-width: 28px; text-align: center; }
+
+  /* ── CARDS FEED ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .card-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .card-item:hover { border-color: rgba(240,192,64,0.3); transform: translateY(-2px); }
+  .card-item .card-type { margin-bottom: 12px; }
+  .card-item .card-meta { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .card-item .card-note { font-size: 14px; color: var(--text); margin-top: 8px; font-style: italic; line-height: 1.5; }
+  .card-item .card-date { font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+  /* ── GIVE CARD FORM ── */
+  .give-card-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 560px;
+  }
+  .card-type-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+  .card-type-btn {
+    padding: 14px; border-radius: 12px; border: 2px solid var(--border);
+    background: var(--surface2); cursor: pointer; text-align: left;
+    transition: all 0.2s; color: var(--text);
+  }
+  .card-type-btn .ct-icon { font-size: 22px; margin-bottom: 6px; display: block; }
+  .card-type-btn .ct-label { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; display: block; }
+  .card-type-btn.selected.pioneer { border-color: #0a2d6e; background: rgba(10,45,110,0.08); }
+  .card-type-btn.selected.purposeful { border-color: #be185d; background: rgba(236,72,153,0.08); }
+  .card-type-btn.selected.excellence { border-color: #7c3aed; background: rgba(124,58,237,0.08); }
+  .card-type-btn.selected.reliable { border-color: #059669; background: rgba(5,150,105,0.08); }
+  .card-type-btn.selected.sustainable { border-color: #ea580c; background: rgba(234,88,12,0.08); }
+  .card-type-btn.selected.gold-card { border-color: #b45309; background: rgba(217,119,6,0.1); }
+  .card-type-btn:hover { border-color: var(--muted); }
+  .success-msg { color: var(--accent3); font-size: 14px; font-weight: 500; padding: 12px 16px; background: rgba(96,192,160,0.1); border-radius: 10px; border: 1px solid rgba(96,192,160,0.2); margin-top: 16px; display: none; }
+
+  /* ── MY CARDS ── */
+  .tabs-inner { display: flex; gap: 8px; margin-bottom: 24px; }
+  .tab-btn { padding: 8px 18px; border-radius: 8px; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--border); transition: all 0.2s; }
+  .tab-btn.active { color: var(--accent); border-color: rgba(10,45,110,0.3); background: rgba(10,45,110,0.06); }
+
+  /* ── ADMIN ── */
+  .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media(max-width: 700px) { .admin-grid { grid-template-columns: 1fr; } }
+  .admin-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .admin-panel h3 { font-size: 15px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .user-list-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .user-list-item:last-child { border-bottom: none; }
+  .user-list-item .uname { flex: 1; font-size: 14px; }
+  .user-list-item .urole { font-size: 11px; color: var(--muted); }
+  .badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; font-family: 'Syne', sans-serif; }
+  .badge.admin { background: rgba(10,45,110,0.1); color: var(--accent); }
+  .badge.user { background: var(--surface2); color: var(--muted); }
+  .card-type-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .card-type-list-item:last-child { border-bottom: none; }
+  .card-type-list-item .ct-name { flex: 1; font-size: 14px; }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .empty .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  /* ── ALERT ── */
+  .alert { padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .alert.error { background: rgba(224,80,96,0.1); border: 1px solid rgba(224,80,96,0.2); color: #e07080; }
+  .alert.success { background: rgba(96,192,160,0.1); border: 1px solid rgba(96,192,160,0.2); color: var(--accent3); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media(max-width: 600px) {
+    .topnav { padding: 0 16px; }
+    .main { padding: 16px; }
+    .nav-tabs { display: none; }
+    .give-card-box { padding: 20px; }
+    .card-type-grid { grid-template-columns: 1fr; }
+    .stats-strip { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     AUTH SCREEN
+══════════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">Behaviours <span>on Display</span></div>
+    <div class="auth-sub">Recognition cards for high-performing teams</div>
+    <div class="alert error" id="auth-error"></div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="Enter your username" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter your password">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Sign In →</button>
+    <p style="margin-top:20px; font-size:12px; color:var(--muted); text-align:center;">
+      Default admin: <strong style="color:var(--text)">admin</strong> / <strong style="color:var(--text)">admin123</strong>
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APP
+══════════════════════════════════════════ -->
+<div id="app">
+  <!-- TOP NAV -->
+  <nav class="topnav">
+    <div class="nav-logo">Behaviours <span>on Display</span></div>
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="showView('dashboard')">Dashboard</div>
+      <div class="nav-tab" onclick="showView('give')">Give Card</div>
+      <div class="nav-tab" onclick="showView('mycards')">My Cards</div>
+      <div class="nav-tab" id="admin-tab" style="display:none" onclick="showView('admin')">Admin</div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-user">
+        <div class="avatar" id="nav-avatar"></div>
+        <span id="nav-name"></span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <h2>Team Dashboards</h2>
+        <p>Recognition leaderboards by team</p>
+      </div>
+      <div class="team-tabs" id="team-tabs">
+        <button class="team-tab active" onclick="showTeamTab('business-growth', this)">📈 Business Growth</button>
+        <button class="team-tab" onclick="showTeamTab('core-enablers', this)">⚙️ Core Enablers</button>
+        <button class="team-tab" onclick="showTeamTab('finance', this)">💰 Finance</button>
+        <button class="team-tab" onclick="showTeamTab('investment-legal', this)">⚖️ Investment / Legal</button>
+        <button class="team-tab" onclick="showTeamTab('operations', this)">🏗️ Operations</button>
+      </div>
+      <div id="team-dashboard-content"></div>
+    </div>
+
+    <!-- ── GIVE CARD ── -->
+    <div class="view" id="view-give">
+      <div class="page-header">
+        <h2>Give a Recognition Card</h2>
+        <p>Recognise a teammate's behaviour</p>
+      </div>
+      <div class="give-card-box">
+        <div class="form-group">
+          <label>Recipient</label>
+          <select id="give-recipient"></select>
+        </div>
+        <div class="form-group">
+          <label>Behaviour Card</label>
+          <div class="card-type-grid" id="card-type-grid"></div>
+          <input type="hidden" id="give-type">
+        </div>
+        <div class="form-group">
+          <label>Note <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+          <textarea id="give-note" rows="3" placeholder="What did they do? Describe the moment..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="giveCard()">Send Card ✦</button>
+        <div class="success-msg" id="give-success">✓ Card sent successfully!</div>
+        <div class="alert error" id="give-error"></div>
+      </div>
+    </div>
+
+    <!-- ── MY CARDS ── -->
+    <div class="view" id="view-mycards">
+      <div class="page-header">
+        <h2>My Cards</h2>
+        <p>Cards you've received and given</p>
+      </div>
+      <div class="stats-strip" id="my-stats"></div>
+      <div class="tabs-inner">
+        <button class="tab-btn active" onclick="showMyTab('received')">Received</button>
+        <button class="tab-btn" onclick="showMyTab('given')">Given</button>
+      </div>
+      <div id="my-cards-received" class="cards-grid"></div>
+      <div id="my-cards-given" class="cards-grid" style="display:none"></div>
+    </div>
+
+    <!-- ── ADMIN ── -->
+    <div class="view" id="view-admin">
+      <div class="page-header">
+        <h2>Admin Panel</h2>
+        <p>Manage users, card types, and all activity</p>
+      </div>
+      <div class="admin-grid">
+
+        <!-- Add User -->
+        <div class="admin-panel">
+          <h3>➕ Add User</h3>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="new-user-name" placeholder="e.g. Sarah Johnson">
+          </div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="new-user-username" placeholder="e.g. sarahj">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="new-user-password" placeholder="Set a password">
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="new-user-role">
+              <option value="user">Team Member</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Team</label>
+            <select id="new-user-team">
+              <option value="business-growth">Business Growth</option>
+              <option value="core-enablers">Core Enablers</option>
+              <option value="finance">Finance</option>
+              <option value="investment-legal">Investment / Legal</option>
+              <option value="operations">Operations</option>
+            </select>
+          </div>
+          <div class="alert error" id="add-user-error"></div>
+          <div class="alert success" id="add-user-success"></div>
+          <button class="btn btn-primary" onclick="addUser()">Add User</button>
+        </div>
+
+        <!-- User List -->
+        <div class="admin-panel">
+          <h3>👥 All Users</h3>
+          <div id="admin-user-list"></div>
+        </div>
+
+        <!-- Add Card Type -->
+        <div class="admin-panel">
+          <h3>🃏 Add Card Type</h3>
+          <div class="form-group">
+            <label>Card Name</label>
+            <input type="text" id="new-card-type-name" placeholder="e.g. Creative Thinker">
+          </div>
+          <div class="form-group">
+            <label>Emoji Icon</label>
+            <input type="text" id="new-card-type-icon" placeholder="e.g. 💡">
+          </div>
+          <div class="alert error" id="add-ct-error"></div>
+          <button class="btn btn-primary" onclick="addCardType()">Add Card Type</button>
+        </div>
+
+        <!-- Card Types List -->
+        <div class="admin-panel">
+          <h3>📋 Card Types</h3>
+          <div id="admin-card-types-list"></div>
+        </div>
+
+        <!-- All Activity -->
+        <div class="admin-panel" style="grid-column: 1 / -1;">
+          <h3>📊 All Activity</h3>
+          <div id="admin-all-cards" class="cards-grid" style="margin-top:8px"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════
+// DATA STORE (localStorage)
+// ══════════════════════════════════════
+const STORE = {
+  get(key) { try { return JSON.parse(localStorage.getItem('tp_' + key)); } catch { return null; } },
+  set(key, val) { localStorage.setItem('tp_' + key, JSON.stringify(val)); }
+};
+
+function initData() {
+  if (!STORE.get('users')) {
+    STORE.set('users', [
+      { id: 'u0', name: 'Admin', username: 'admin', password: 'admin123', role: 'admin', color: '#f0c040' }
+    ]);
+  }
+  if (!STORE.get('cardTypes')) {
+    STORE.set('cardTypes', [
+      { id: 'ct1', name: 'Pioneer', icon: '🚀', cls: 'pioneer' },
+      { id: 'ct2', name: 'Purposeful', icon: '🎯', cls: 'purposeful' },
+      { id: 'ct3', name: 'Excellence', icon: '⭐', cls: 'excellence' },
+      { id: 'ct4', name: 'Reliable', icon: '✅', cls: 'reliable' },
+      { id: 'ct5', name: 'Sustainable', icon: '🌍', cls: 'sustainable' },
+      { id: 'ct6', name: 'Gold Card', icon: '🥇', cls: 'gold-card' }
+    ]);
+  }
+  if (!STORE.get('cards')) { STORE.set('cards', []); }
+}
+
+// ══════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════
+let currentUser = null;
+
+function doLogin() {
+  const un = document.getElementById('login-username').value.trim();
+  const pw = document.getElementById('login-password').value;
+  const users = STORE.get('users') || [];
+  const user = users.find(u => u.username === un && u.password === pw);
+  if (!user) { showAuthError('Invalid username or password.'); return; }
+  currentUser = user;
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('nav-name').textContent = user.name;
+  const av = document.getElementById('nav-avatar');
+  av.textContent = user.name.charAt(0).toUpperCase();
+  av.style.background = user.color || '#7880a0';
+  av.style.color = '#ffffff';
+  if (user.role === 'admin') document.getElementById('admin-tab').style.display = '';
+  showView('dashboard');
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  hideAuthError();
+}
+
+document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+function hideAuthError() { document.getElementById('auth-error').style.display = 'none'; }
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  const tabs = { dashboard: 0, give: 1, mycards: 2, admin: 3 };
+  const allTabs = document.querySelectorAll('.nav-tab');
+  const idx = ['dashboard','give','mycards','admin'].indexOf(name);
+  if (idx !== -1 && allTabs[idx]) allTabs[idx].classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'give') renderGiveForm();
+  if (name === 'mycards') renderMyCards();
+  if (name === 'admin') renderAdmin();
+}
+
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
+const COLORS = ['#0a2d6e','#7c3aed','#059669','#0891b2','#db2777','#d97706','#65a30d','#dc2626'];
+
+function getCardTypeInfo(id) {
+  return (STORE.get('cardTypes') || []).find(ct => ct.id === id) || { name: id, icon: '🃏', cls: '' };
+}
+function getUserById(id) {
+  return (STORE.get('users') || []).find(u => u.id === id) || { name: 'Unknown', color: '#555' };
+}
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function makeId() { return 'id' + Math.random().toString(36).slice(2, 10); }
+function pillCls(ct) {
+  const valid = ['pioneer','purposeful','excellence','reliable','sustainable','gold-card'];
+  return valid.includes(ct.cls) ? ct.cls : '';
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+const TEAMS = [
+  { id: 'business-growth', name: 'Business Growth', icon: '📈' },
+  { id: 'core-enablers', name: 'Core Enablers', icon: '⚙️' },
+  { id: 'finance', name: 'Finance', icon: '💰' },
+  { id: 'investment-legal', name: 'Investment / Legal', icon: '⚖️' },
+  { id: 'operations', name: 'Operations', icon: '🏗️' }
+];
+
+let activeTeamTab = 'business-growth';
+
+function showTeamTab(teamId, el) {
+  activeTeamTab = teamId;
+  document.querySelectorAll('.team-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderTeamDashboard(teamId);
+}
+
+function renderDashboard() {
+  renderTeamDashboard(activeTeamTab);
+}
+
+function renderTeamDashboard(teamId) {
+  const team = TEAMS.find(t => t.id === teamId);
+  const users = (STORE.get('users') || []).filter(u => u.team === teamId);
+  const allCards = STORE.get('cards') || [];
+  const cards = allCards.filter(c => users.some(u => u.id === c.toId));
+  const cardTypes = STORE.get('cardTypes') || [];
+
+  const totalCards = cards.length;
+  const activeGivers = [...new Set(cards.map(c => c.fromId))].length;
+
+  const statsHtml = `
+    <div class="stats-strip">
+      <div class="stat-card c1"><div class="stat-label">Total Cards Received</div><div class="stat-value">${totalCards}</div></div>
+      <div class="stat-card c3"><div class="stat-label">Team Members</div><div class="stat-value">${users.length}</div></div>
+      <div class="stat-card c4"><div class="stat-label">Active Givers</div><div class="stat-value">${activeGivers}</div></div>
+      <div class="stat-card c2"><div class="stat-label">Card Types</div><div class="stat-value">${cardTypes.length}</div></div>
+    </div>`;
+
+  // Tally
+  const tally = {};
+  users.forEach(u => { tally[u.id] = { user: u, total: 0, types: {} }; });
+  cards.forEach(c => {
+    if (!tally[c.toId]) return;
+    tally[c.toId].total++;
+    tally[c.toId].types[c.typeId] = (tally[c.toId].types[c.typeId] || 0) + 1;
+  });
+
+  const sorted = Object.values(tally).sort((a, b) => b.total - a.total);
+  const rankClasses = ['gold','silver','bronze'];
+
+  let lbRows = '';
+  if (sorted.length === 0) {
+    lbRows = '<div class="empty"><div class="empty-icon">🏆</div><p>No members in this team yet. Add members via the Admin panel.</p></div>';
+  } else {
+    lbRows = sorted.map((entry, i) => {
+      const rc = rankClasses[i] || '';
+      const isMe = entry.user.id === currentUser.id;
+      const typePills = cardTypes.map(ct => {
+        const n = entry.types[ct.id] || 0;
+        if (!n) return '';
+        return `<span class="pill ${pillCls(ct)}">${ct.icon} ${ct.name} ×${n}</span>`;
+      }).join('');
+      return `
+        <div class="lb-row ${isMe ? 'me' : ''}">
+          <div class="rank ${rc}">${i + 1}</div>
+          <div class="avatar" style="background:${entry.user.color||'#0a2d6e'};color:#ffffff">${entry.user.name.charAt(0).toUpperCase()}</div>
+          <div class="lb-name">${entry.user.name} ${isMe ? '<small>— You</small>' : ''}</div>
+          <div class="lb-cards">
+            ${typePills || '<span style="font-size:12px;color:var(--muted)">No cards yet</span>'}
+            <span class="pill count">${entry.total}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('team-dashboard-content').innerHTML = `
+    ${statsHtml}
+    <div class="leaderboard">
+      <div class="lb-header">
+        <h3>${team.icon} ${team.name} Leaderboard</h3>
+        <span style="font-size:13px;color:var(--muted)">All time</span>
+      </div>
+      ${lbRows}
+    </div>`;
+}
+
+// ══════════════════════════════════════
+// GIVE CARD
+// ══════════════════════════════════════
+let selectedCardType = null;
+
+function renderGiveForm() {
+  const users = STORE.get('users') || [];
+  const others = users.filter(u => u.id !== currentUser.id);
+  const sel = document.getElementById('give-recipient');
+  sel.innerHTML = others.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+
+  const cardTypes = STORE.get('cardTypes') || [];
+  const clsList = ['pioneer','purposeful','excellence','reliable','sustainable','gold-card'];
+  const grid = document.getElementById('card-type-grid');
+  grid.innerHTML = cardTypes.map((ct, i) => `
+    <button class="card-type-btn ${clsList[i % clsList.length]}" onclick="selectCardType('${ct.id}', this, '${clsList[i % clsList.length]}')" data-id="${ct.id}">
+      <span class="ct-icon">${ct.icon}</span>
+      <span class="ct-label">${ct.name}</span>
+    </button>`).join('');
+  selectedCardType = null;
+  document.getElementById('give-note').value = '';
+  document.getElementById('give-success').style.display = 'none';
+  document.getElementById('give-error').style.display = 'none';
+}
+
+function selectCardType(id, el, cls) {
+  selectedCardType = id;
+  document.querySelectorAll('.card-type-btn').forEach(b => b.classList.remove('selected','tp','ps','gc','ga'));
+  el.classList.add('selected', cls);
+}
+
+function giveCard() {
+  const toId = document.getElementById('give-recipient').value;
+  const note = document.getElementById('give-note').value.trim();
+  const errEl = document.getElementById('give-error');
+  errEl.style.display = 'none';
+
+  if (!selectedCardType) { errEl.textContent = 'Please select a behaviour card type.'; errEl.style.display = 'block'; return; }
+  if (!toId) { errEl.textContent = 'Please select a recipient.'; errEl.style.display = 'block'; return; }
+
+  const cards = STORE.get('cards') || [];
+  cards.push({ id: makeId(), fromId: currentUser.id, toId, typeId: selectedCardType, note, ts: Date.now() });
+  STORE.set('cards', cards);
+
+  document.getElementById('give-success').style.display = 'block';
+  selectedCardType = null;
+  document.querySelectorAll('.card-type-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('give-note').value = '';
+  setTimeout(() => { document.getElementById('give-success').style.display = 'none'; }, 3000);
+}
+
+// ══════════════════════════════════════
+// MY CARDS
+// ══════════════════════════════════════
+function renderMyCards() {
+  const cards = STORE.get('cards') || [];
+  const received = cards.filter(c => c.toId === currentUser.id);
+  const given = cards.filter(c => c.fromId === currentUser.id);
+
+  // Stats
+  const cardTypes = STORE.get('cardTypes') || [];
+  const breakdown = cardTypes.map(ct => {
+    const n = received.filter(c => c.typeId === ct.id).length;
+    return n ? `<span class="pill ${pillCls(ct)}">${ct.icon} ${ct.name}: ${n}</span>` : '';
+  }).join('');
+
+  document.getElementById('my-stats').innerHTML = `
+    <div class="stat-card c1"><div class="stat-label">Cards Received</div><div class="stat-value">${received.length}</div></div>
+    <div class="stat-card c2"><div class="stat-label">Cards Given</div><div class="stat-value">${given.length}</div></div>
+  `;
+
+  renderCardList('my-cards-received', received, 'from');
+  renderCardList('my-cards-given', given, 'to');
+}
+
+function renderCardList(elId, cards, direction) {
+  const el = document.getElementById(elId);
+  if (!cards.length) {
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🃏</div><p>No cards ${direction === 'from' ? 'received' : 'given'} yet.</p></div>`;
+    return;
+  }
+  el.innerHTML = [...cards].reverse().map(c => {
+    const ct = getCardTypeInfo(c.typeId);
+    const other = getUserById(direction === 'from' ? c.fromId : c.toId);
+    const label = direction === 'from' ? `From ${other.name}` : `To ${other.name}`;
+    return `
+      <div class="card-item">
+        <div class="card-type"><span class="pill ${pillCls(ct)}">${ct.icon} ${ct.name}</span></div>
+        <div class="card-meta">${label}</div>
+        ${c.note ? `<div class="card-note">"${c.note}"</div>` : ''}
+        <div class="card-date">${fmtDate(c.ts)}</div>
+      </div>`;
+  }).join('');
+}
+
+function showMyTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('my-cards-received').style.display = tab === 'received' ? 'grid' : 'none';
+  document.getElementById('my-cards-given').style.display = tab === 'given' ? 'grid' : 'none';
+}
+
+// ══════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════
+function renderAdmin() {
+  renderAdminUserList();
+  renderAdminCardTypes();
+  renderAdminAllCards();
+}
+
+function renderAdminUserList() {
+  const users = STORE.get('users') || [];
+  const el = document.getElementById('admin-user-list');
+  el.innerHTML = users.map(u => {
+    const team = TEAMS.find(t => t.id === u.team);
+    const teamLabel = team ? `${team.icon} ${team.name}` : 'No team';
+    return `
+    <div class="user-list-item">
+      <div class="avatar" style="background:${u.color||'#0a2d6e'};color:#ffffff;width:32px;height:32px;font-size:12px">${u.name.charAt(0).toUpperCase()}</div>
+      <div class="uname">${u.name}<br><span class="urole">@${u.username} · ${teamLabel}</span></div>
+      <span class="badge ${u.role}">${u.role}</span>
+      ${u.id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Remove</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderAdminCardTypes() {
+  const cardTypes = STORE.get('cardTypes') || [];
+  const el = document.getElementById('admin-card-types-list');
+  el.innerHTML = cardTypes.map(ct => `
+    <div class="card-type-list-item">
+      <span>${ct.icon}</span>
+      <span class="ct-name">${ct.name}</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteCardType('${ct.id}')">Remove</button>
+    </div>`).join('');
+}
+
+function renderAdminAllCards() {
+  const cards = STORE.get('cards') || [];
+  const el = document.getElementById('admin-all-cards');
+  if (!cards.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📋</div><p>No cards assigned yet.</p></div>'; return; }
+  el.innerHTML = [...cards].reverse().map(c => {
+    const ct = getCardTypeInfo(c.typeId);
+    const from = getUserById(c.fromId);
+    const to = getUserById(c.toId);
+    return `
+      <div class="card-item">
+        <div class="card-type"><span class="pill ${pillCls(ct)}">${ct.icon} ${ct.name}</span></div>
+        <div class="card-meta" style="display:flex;gap:8px;align-items:center">
+          <span class="avatar" style="width:22px;height:22px;font-size:10px;background:${from.color||'#0a2d6e'};color:#ffffff">${from.name.charAt(0)}</span>
+          ${from.name} → <span class="avatar" style="width:22px;height:22px;font-size:10px;background:${to.color||'#0a2d6e'};color:#ffffff">${to.name.charAt(0)}</span> ${to.name}
+        </div>
+        ${c.note ? `<div class="card-note">"${c.note}"</div>` : ''}
+        <div class="card-date" style="display:flex;justify-content:space-between;align-items:center">
+          ${fmtDate(c.ts)}
+          <button class="btn btn-danger btn-sm" onclick="deleteCard('${c.id}')">Delete</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function addUser() {
+  const name = document.getElementById('new-user-name').value.trim();
+  const username = document.getElementById('new-user-username').value.trim();
+  const password = document.getElementById('new-user-password').value;
+  const role = document.getElementById('new-user-role').value;
+  const team = document.getElementById('new-user-team').value;
+  const errEl = document.getElementById('add-user-error');
+  const sucEl = document.getElementById('add-user-success');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+
+  if (!name || !username || !password) { errEl.textContent = 'All fields are required.'; errEl.style.display = 'block'; return; }
+  const users = STORE.get('users') || [];
+  if (users.find(u => u.username === username)) { errEl.textContent = 'Username already exists.'; errEl.style.display = 'block'; return; }
+
+  const color = COLORS[users.length % COLORS.length];
+  users.push({ id: makeId(), name, username, password, role, team, color });
+  STORE.set('users', users);
+  document.getElementById('new-user-name').value = '';
+  document.getElementById('new-user-username').value = '';
+  document.getElementById('new-user-password').value = '';
+  sucEl.textContent = `✓ ${name} added successfully.`; sucEl.style.display = 'block';
+  setTimeout(() => sucEl.style.display = 'none', 3000);
+  renderAdminUserList();
+}
+
+function deleteUser(id) {
+  if (!confirm('Remove this user?')) return;
+  const users = (STORE.get('users') || []).filter(u => u.id !== id);
+  STORE.set('users', users);
+  renderAdminUserList();
+}
+
+function addCardType() {
+  const name = document.getElementById('new-card-type-name').value.trim();
+  const icon = document.getElementById('new-card-type-icon').value.trim() || '🃏';
+  const errEl = document.getElementById('add-ct-error');
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = 'Card name is required.'; errEl.style.display = 'block'; return; }
+  const cardTypes = STORE.get('cardTypes') || [];
+  cardTypes.push({ id: makeId(), name, icon, cls: '' });
+  STORE.set('cardTypes', cardTypes);
+  document.getElementById('new-card-type-name').value = '';
+  document.getElementById('new-card-type-icon').value = '';
+  renderAdminCardTypes();
+}
+
+function deleteCardType(id) {
+  if (!confirm('Remove this card type?')) return;
+  const cardTypes = (STORE.get('cardTypes') || []).filter(ct => ct.id !== id);
+  STORE.set('cardTypes', cardTypes);
+  renderAdminCardTypes();
+}
+
+function deleteCard(id) {
+  if (!confirm('Delete this card?')) return;
+  const cards = (STORE.get('cards') || []).filter(c => c.id !== id);
+  STORE.set('cards', cards);
+  renderAdminAllCards();
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+initData();
+</script>
+</body>
+</html>
